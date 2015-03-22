@@ -32,3 +32,14 @@ Known issues:
 AVG (maybe others) detects cwRsync as a power user tool/vulnerability
 Python crashes when copying lots of files into directory extremely fast (maybe not an issue, seems abusive)
 Syncing a folder to itself will upset the program so much that you'll need to close it and reopen it if you want it to continue syncing a folder.
+
+Credit to other tools:
+GPL v3
+cwRsync
+cygwin
+rSync
+putty
+py2exe
+python watchdog
+wxPython
+Nullsoft Scriptable Install System (NSIS)
