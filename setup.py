@@ -17,7 +17,7 @@ setup(
   zipfile=None, 
   windows = [
         {
-            "script": 'quack.py',
+            "script": 'Quack.py',
             "icon_resources": [(1, "quack.ico")]
         }
         ]

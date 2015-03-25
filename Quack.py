@@ -16,6 +16,7 @@
 
 import wx
 import ConfigParser
+import os
 from backup import backup
 from StatusFrame import StatusFrame
 from CustomTaskBarIcon import CustomTaskBarIcon
@@ -98,24 +99,20 @@ class MainFrame(wx.Frame):
         path = self.selectDir()
         if path:
             self.m_srcDir.SetValue(path)
-            self.config_parser.set('PATHS', 'last_src', "{}".format(path))
-            with open('QuackBackup.cfg', 'wb') as configfile:
-                self.config_parser.write(configfile)
-                configfile.close()
         
     def selectDestDir(self, event):
         path = self.selectDir()
         if path:
             self.m_destDir.SetValue(path)
-            self.config_parser.set('PATHS', 'last_dest', "{}".format(path))
-            with open('QuackBackup.cfg', 'wb') as configfile:
-                self.config_parser.write(configfile)
-                configfile.close()
         
     def processBackup(self, event):
         srcDir = self.m_srcDir.GetValue()+"\\"
         destDir = self.m_destDir.GetValue()+"\\"
-        if srcDir != "" and destDir != "":
+        if srcDir != "" and os.path.exists(srcDir) and destDir != "" and os.path.exists(destDir) and srcDir != destDir:
+            self.config_parser.set('PATHS', 'last_src', "{}".format(self.m_srcDir.GetValue()))
+            self.config_parser.set('PATHS', 'last_dest', "{}".format(self.m_destDir.GetValue()))
+            with open('QuackBackup.cfg', 'wb') as configfile:
+                self.config_parser.write(configfile)
             if self.running:
                 self.running = False
                 
@@ -138,6 +135,9 @@ class MainFrame(wx.Frame):
                 self.m_destDir.Disable()
                 self.m_destDirSelect.Disable()
                 self.Hide()
+        else:
+            message = wx.MessageDialog(self, message="Check your Source and Destination directories.", caption="Directory Error", style=wx.OK)
+            message.ShowModal()
 
 def main():
     """"""
