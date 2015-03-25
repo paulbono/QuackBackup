@@ -38,23 +38,21 @@ si = subprocess.STARTUPINFO()
 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
 class MyHandler(PatternMatchingEventHandler):
-    def __init__(self, parent_frame, status_frame, dest_loc):
+    def __init__(self, parent_frame, status_frame, src_loc, dest_loc):
         PatternMatchingEventHandler.__init__(self)
-        #self.tbIcon = tbIcon
         self.parent_frame = parent_frame
         self.statusFrame = status_frame
         self.dest_loc = dest_loc
-        self.rsync_start_backup_notify = wx.NotificationMessage(u"Quack Backup", u"Backing Up Files", self.parent_frame)
-        self.rsync_stop_backup_notify = wx.NotificationMessage(u"Quack Backup", u"Back Up Complete", self.parent_frame)
         patterns=["*"]
         self.backup_in_progress = False
+        
+        # First sync files that may have been modified while we were not running
+        self.trigger_event(src_loc)
 
-    def process(self, event):
+    def process(self, trigger_path):
         try:
-            #self.rsync_start_backup_notify.Show(1)
-            #self.tbIcon.ShowMessage("Backing Up Files")
             #print event.src_path
-            command = '{} {}'.format(cygpath_loc, event.src_path)
+            command = '{} {}'.format(cygpath_loc, trigger_path)
             proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=si, shell=False)
             (stdoutdata, stderrdata) =  proc.communicate()
             cyg_formatted_path = os.path.dirname(stdoutdata.rstrip().replace("\n"," "))
@@ -102,8 +100,11 @@ class MyHandler(PatternMatchingEventHandler):
             pass
 
     def on_any_event(self, event):
+        self.trigger_event(event.src_path)
+        
+    def trigger_event(self, trigger_path):
         if not self.backup_in_progress :
-            command = '{} {}'.format(cygpath_loc, event.src_path)
+            command = '{} {}'.format(cygpath_loc, trigger_path)
             proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=si, shell=False)
             (stdoutdata, stderrdata) =  proc.communicate()
             cyg_formatted_path = os.path.dirname(stdoutdata.rstrip().replace("\n"," "))
@@ -118,7 +119,7 @@ class MyHandler(PatternMatchingEventHandler):
                 pass
             if not (len(dry_output.split("\n")) <= 5):
                 self.backup_in_progress = True
-                self.process(event)
+                self.process(trigger_path)
     
 class backup():
     def stopBackup(self):
@@ -127,9 +128,6 @@ class backup():
     def __init__(self, status_frame):
         self.alive = True
         self.statusFrame = status_frame
-        
-    def unblock_popen(self, std_out):
-        pass
         
     def run(self, parent_frame, observe_path, dest_loc):
         command = '{} {}'.format(cygpath_loc, dest_loc)
@@ -146,15 +144,9 @@ class backup():
         #print self.observe_path
         #print observe_path
         self.observer = Observer()
-        self.observer.schedule(MyHandler(parent_frame, self.statusFrame, self.dest_loc), path=observe_path, recursive=True)
+        self.observer.schedule(MyHandler(parent_frame, self.statusFrame, observe_path, self.dest_loc), path=observe_path, recursive=True)
         self.observer.start()
-        
-        # First sync files that may have been modified while we were not running
-        command = '{} {} \'{}/\' \'{}\''.format(rsync_loc, rsync_flags, self.observe_path, self.dest_loc)
-        proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=si, shell=False)
-        t = Thread(target=self.unblock_popen, args=(proc.communicate(),))
-        t.start()
-        
+
         try:
             while self.alive:
                 time.sleep(1)
@@ -162,6 +154,4 @@ class backup():
         except KeyboardInterrupt:
             self.observer.stop()
         self.observer.join()
-        t.join()
-
         

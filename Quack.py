@@ -92,7 +92,6 @@ class MainFrame(wx.Frame):
         dialog = wx.DirDialog(None, "Choose a directory:",style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
         if dialog.ShowModal() == wx.ID_OK:
             path = dialog.GetPath()
-        dialog.Destroy()
         return path
         
     def selectSrcDir(self, event):
@@ -108,6 +107,11 @@ class MainFrame(wx.Frame):
     def processBackup(self, event):
         srcDir = self.m_srcDir.GetValue()+"\\"
         destDir = self.m_destDir.GetValue()+"\\"
+        if destDir != "" and not os.path.exists(destDir):
+            message = wx.MessageDialog(self, message="Destination does not exist, Create?", caption="Directory Missing", style=wx.YES_NO)
+            if message.ShowModal() == wx.ID_YES:
+                os.makedirs(destDir)
+
         if srcDir != "" and os.path.exists(srcDir) and destDir != "" and os.path.exists(destDir) and srcDir != destDir:
             self.config_parser.set('PATHS', 'last_src', "{}".format(self.m_srcDir.GetValue()))
             self.config_parser.set('PATHS', 'last_dest', "{}".format(self.m_destDir.GetValue()))

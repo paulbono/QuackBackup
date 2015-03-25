@@ -17,6 +17,7 @@
 import wx
 import time
 import win32gui
+#from timer import timer
 
 class StatusFrame(wx.Frame):
     def __init__(self, parent_frame=None):
@@ -33,13 +34,17 @@ class StatusFrame(wx.Frame):
         self.bSizer1.Add( self.m_StatusOutput, 1, wx.ALL|wx.EXPAND, 5 )
         self.panel.SetSizer( self.bSizer1 )
         self.panel.Layout()
+        #self.timer = timer(3)
 
     def addStatus(self, message):
         if message.rstrip() != "":
             self.m_StatusOutput.AppendText(message)
             self.m_StatusOutput.Refresh()
+            #self.timer.restart()
         
     def stopOnTimeout(self):
+        #while not self.timer.expired:
+        #    pass
         time.sleep(3)
         while "Backup Status" == self.w.GetWindowText(self.w.GetForegroundWindow()):
             pass
