@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import wx
+
 class CustomTaskBarIcon(wx.TaskBarIcon):
     def __init__(self, frame, status_frame):
         wx.TaskBarIcon.__init__(self)

@@ -23,11 +23,7 @@ from threading import *
 from ConfigParser import ConfigParser
 
 class MainFrame(wx.Frame):
-    """"""
- 
-    #----------------------------------------------------------------------
     def __init__(self, status_frame):
-        """Constructor"""
         wx.Frame.__init__(self, None, wx.ID_ANY, "Quack Backup", (-1, -1), wx.Size(300, 150))
         self.statusFrame = status_frame
         self.icon = wx.EmptyIcon()
@@ -81,21 +77,13 @@ class MainFrame(wx.Frame):
 
         self.Show()
  
-    #----------------------------------------------------------------------
     def onClose(self, evt):
-        """
-        Destroy the taskbar icon and the frame
-        """
         self.tbIcon.RemoveIcon()
         self.tbIcon.Destroy()
         self.Destroy()
         self.statusFrame.Destroy()
  
-    #----------------------------------------------------------------------
     def onMinimize(self, event):
-        """
-        When minimizing, hide the frame so it "minimizes to tray"
-        """
         self.Hide()
         
     def selectDir(self):
@@ -151,7 +139,6 @@ class MainFrame(wx.Frame):
                 self.m_destDirSelect.Disable()
                 self.Hide()
 
-#----------------------------------------------------------------------
 def main():
     """"""
     app = wx.App(False)

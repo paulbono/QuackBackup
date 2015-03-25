@@ -59,10 +59,12 @@ Section "install"
     File .\dist\_hashlib.pyd
     File .\dist\bz2.pyd
     File .\dist\python27.dll
+    File .\dist\pywintypes27.dll
     File .\dist\Quack.exe
     File .\dist\select.pyd
     File .\dist\unicodedata.pyd
     File .\dist\w9xpopen.exe
+    File .\dist\win32gui.pyd
     File .\dist\wx._controls_.pyd
     File .\dist\wx._core_.pyd
     File .\dist\wx._gdi_.pyd
@@ -123,10 +125,12 @@ Section "uninstall"
     Delete $INSTDIR\_hashlib.pyd
     Delete $INSTDIR\bz2.pyd
     Delete $INSTDIR\python27.dll
+    Delete $INSTDIR\pywintypes27.dll
     Delete $INSTDIR\Quack.exe
     Delete $INSTDIR\select.pyd
     Delete $INSTDIR\unicodedata.pyd
     Delete $INSTDIR\w9xpopen.exe
+    Delete $INSTDIR\win32gui.pyd
     Delete $INSTDIR\wx._controls_.pyd
     Delete $INSTDIR\wx._core_.pyd
     Delete $INSTDIR\wx._gdi_.pyd
