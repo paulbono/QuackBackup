@@ -37,30 +37,12 @@ dry_rsync_flags = config.get('RSYNC', 'dry_rsync_flags')
 si = subprocess.STARTUPINFO()
 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
-class StatusFrame(wx.Frame):
-    def __init__(self, parent_frame):
-        dw, dh = wx.DisplaySize()
-        w, h = (300, 150)
-        x = dw - w
-        y = dh - h
-        wx.Frame.__init__(self, parent_frame, 2, "Status", (x, y), wx.Size(w, h), wx.NO_BORDER)
-        panel = wx.Panel(self)
-        bSizer1 = wx.BoxSizer( wx.VERTICAL )
-        bSizer2 = wx.BoxSizer( wx.VERTICAL )
-        self.m_StatusText = wx.StaticText(panel, wx.ID_ANY, u"Backup Status", wx.DefaultPosition, wx.DefaultSize)
-        bSizer2.Add( self.m_StatusText, 0, wx.EXPAND|wx.ALL, 1 )
-        bSizer1.Add( bSizer2, 0, wx.ALL, 1)
-        panel.SetSizer( bSizer1 )
-        panel.Layout()
-
-    def addStatus(self, message):
-        print message
-
 class MyHandler(PatternMatchingEventHandler):
-    def __init__(self, parent_frame, dest_loc):
+    def __init__(self, parent_frame, status_frame, dest_loc):
         PatternMatchingEventHandler.__init__(self)
         #self.tbIcon = tbIcon
         self.parent_frame = parent_frame
+        self.statusFrame = status_frame
         self.dest_loc = dest_loc
         self.rsync_start_backup_notify = wx.NotificationMessage(u"Quack Backup", u"Backing Up Files", self.parent_frame)
         self.rsync_stop_backup_notify = wx.NotificationMessage(u"Quack Backup", u"Back Up Complete", self.parent_frame)
@@ -86,26 +68,23 @@ class MyHandler(PatternMatchingEventHandler):
                 dry_output = 0
                 print "dry output check failed"
                 pass
-            if len(dry_output.split("\n")) > 5 :
-                frame = StatusFrame(parent_frame=self.parent_frame)
-                frame.Show()
-                
+
+            if len(dry_output.split("\n")) > 5:
+                self.statusFrame.Show()
             while( len(dry_output.split("\n")) > 5 ):
                 try:
                     command = '{} {} \'{}/\' \'{}\''.format(rsync_loc, rsync_flags, cyg_formatted_path, self.dest_loc)
                     #print command
                     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=si, shell=False)
-                    print "entering poll"
                     times = 0
+                    
                     while proc.poll() is None:
                         line = proc.stdout.readline()
-                        frame.addStatus(line)
+                        self.statusFrame.addStatus(line)
                         times += 1
                         if (not line and times >= 5):
                             break
-                    #(stdoutdata, stderrdata) =  proc.communicate()
                     proc.wait()
-                    #print stdoutdata
                 except:
                     pass
                 try:
@@ -116,14 +95,8 @@ class MyHandler(PatternMatchingEventHandler):
                 except:
                     print "dry output check failed"
                     pass
-            time.sleep(3)
-            if frame:
-                frame.Hide()
-                frame.Close(True)
-                frame.Destroy()
-                
-            #self.rsync_stop_backup_notify.Show(1)
-            #self.tbIcon.ShowMessage("Back Up Complete")
+            t = Thread(target=self.statusFrame.stopOnTimeout)
+            t.start()
             self.backup_in_progress = False
         except:
             pass
@@ -151,8 +124,9 @@ class backup():
     def stopBackup(self):
         self.alive = False
         
-    def __init__(self):
+    def __init__(self, status_frame):
         self.alive = True
+        self.statusFrame = status_frame
         
     def unblock_popen(self, std_out):
         pass
@@ -172,7 +146,7 @@ class backup():
         #print self.observe_path
         #print observe_path
         self.observer = Observer()
-        self.observer.schedule(MyHandler(parent_frame, self.dest_loc), path=observe_path, recursive=True)
+        self.observer.schedule(MyHandler(parent_frame, self.statusFrame, self.dest_loc), path=observe_path, recursive=True)
         self.observer.start()
         
         # First sync files that may have been modified while we were not running

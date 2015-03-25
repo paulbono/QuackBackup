@@ -75,6 +75,8 @@ Section "install"
     File .\dist\wxmsw30u_html_vc90.dll
     File .\quack.ico
     File .\QuackBackup.cfg
+    File .\README.txt
+    File .\LICENSE
  
     # create the uninstaller
     WriteUninstaller "$INSTDIR\uninstall.exe"
@@ -138,6 +140,8 @@ Section "uninstall"
     Delete $INSTDIR\quack.ico
     Delete $INSTDIR\QuackBackup.cfg
     Delete $INSTDIR\quack.exe.log
+    Delete $INSTDIR\README.txt
+    Delete $INSTDIR\LICENSE
     
     Delete $INSTDIR\uninstall.exe
     rmDir $INSTDIR

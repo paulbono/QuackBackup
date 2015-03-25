@@ -17,60 +17,25 @@
 import wx
 import ConfigParser
 from backup import backup
+from StatusFrame import StatusFrame
+from CustomTaskBarIcon import CustomTaskBarIcon
 from threading import *
 from ConfigParser import ConfigParser
 
-########################################################################
-class CustomTaskBarIcon(wx.TaskBarIcon):
-    """"""
-
-    #----------------------------------------------------------------------
-    def __init__(self, frame):
-        """Constructor"""
-        wx.TaskBarIcon.__init__(self)
-        self.frame = frame
- 
-        self.icon = wx.EmptyIcon()
-        self.icon.CopyFromBitmap(wx.Bitmap("quack.ico", wx.BITMAP_TYPE_ANY))
-        self.SetIcon(self.icon)
- 
-        self.SetIcon(self.icon, "Restore")
-        self.Bind(wx.EVT_TASKBAR_LEFT_DOWN, self.OnTaskBarLeftClick)
-
-    #----------------------------------------------------------------------
-    def OnTaskBarActivate(self, evt):
-        """"""
-        pass
-
-    #----------------------------------------------------------------------
-    def OnTaskBarClose(self, evt):
-        """
-        Destroy the taskbar icon and frame from the taskbar icon itself
-        """
-        self.frame.Close()
-
-    #----------------------------------------------------------------------
-    def OnTaskBarLeftClick(self, evt):
-        """
-        Create the right-click menu
-        """
-        self.frame.Show()
-        self.frame.Restore()
-
-########################################################################
 class MainFrame(wx.Frame):
     """"""
  
     #----------------------------------------------------------------------
-    def __init__(self, id):
+    def __init__(self, status_frame):
         """Constructor"""
-        wx.Frame.__init__(self, None, id, "Quack Backup", (-1, -1), wx.Size(300, 150))
+        wx.Frame.__init__(self, None, wx.ID_ANY, "Quack Backup", (-1, -1), wx.Size(300, 150))
+        self.statusFrame = status_frame
         self.icon = wx.EmptyIcon()
         self.icon.CopyFromBitmap(wx.Bitmap("quack.ico", wx.BITMAP_TYPE_ANY))
         self.SetIcon(self.icon)
         
-        panel = wx.Panel(self, -1)
-        self.tbIcon = CustomTaskBarIcon(self)
+        panel = wx.Panel(self, wx.ID_ANY)
+        self.tbIcon = CustomTaskBarIcon(self, status_frame)
         
         bSizer1 = wx.BoxSizer( wx.VERTICAL )
         bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
@@ -94,9 +59,6 @@ class MainFrame(wx.Frame):
         
         self.m_processBackupButton = wx.Button( panel, wx.ID_ANY, u"Start Backup", wx.DefaultPosition, wx.DefaultSize)
         bSizer1.Add( self.m_processBackupButton, 0, wx.ALL, 1 )
-        
-        #self.m_cousin_trust = wx.StaticText(panel, wx.ID_ANY, u"Cousin Trust", wx.DefaultPosition, wx.DefaultSize)
-        #bSizer1.Add( self.m_cousin_trust, 0, wx.EXPAND|wx.ALL, 1 )
         
         panel.SetSizer( bSizer1 )
         panel.Layout()
@@ -127,6 +89,7 @@ class MainFrame(wx.Frame):
         self.tbIcon.RemoveIcon()
         self.tbIcon.Destroy()
         self.Destroy()
+        self.statusFrame.Destroy()
  
     #----------------------------------------------------------------------
     def onMinimize(self, event):
@@ -178,7 +141,7 @@ class MainFrame(wx.Frame):
             else:
                 self.running = True
                 
-                self.backup_task = backup()
+                self.backup_task = backup(self.statusFrame)
                 t = Thread(target=self.backup_task.run, args=(self, srcDir, destDir))
                 t.start()
                 self.m_processBackupButton.SetLabel(u"Stop Backup")
@@ -187,12 +150,16 @@ class MainFrame(wx.Frame):
                 self.m_destDir.Disable()
                 self.m_destDirSelect.Disable()
                 self.Hide()
- 
+
 #----------------------------------------------------------------------
 def main():
     """"""
     app = wx.App(False)
-    frame = MainFrame(1)
+    statusFrame = StatusFrame()
+    frame = MainFrame(statusFrame)
+    frame.Fit()
+    frame.Show()
+    app.SetTopWindow(frame)
     app.MainLoop()
  
 if __name__ == "__main__":
