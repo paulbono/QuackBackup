@@ -24,7 +24,7 @@ class timer(Thread):
         self.expired = False
         self.running = False
 
-    def start(self):
+    def run(self):
         self.running = True
         self.expired = False
         self.startTime = time.time()
@@ -32,14 +32,19 @@ class timer(Thread):
         elapsed = 0
         while elapsed < self.timeout:
             elapsed = time.time() - self.startTime
-            time.sleep(1)
+            time.sleep(0.5)
         self.expired = True
+        self.running = False
+        
+    def cancel(self):
+        self.startTime -= self.timeout
+        self.expired = False
         self.running = False
 
     def restart(self):
         self.startTime=time.time()
         if not self.running:
-            self.t = Thread(target=self.start)
+            self.t = Thread(target=self.run)
             self.t.start()
         
     def isExpired(self):

@@ -16,6 +16,7 @@
 
 import wx
 import time
+import re
 import win32gui
 from timer import timer
 
@@ -40,13 +41,14 @@ class StatusFrame(wx.Frame):
         if message.rstrip() != "":
             self.m_StatusOutput.AppendText(message)
             self.m_StatusOutput.Refresh()
-            print message
-            self.timer.restart()
+            if re.match('total size is .* speedup is .*', message):
+                self.timer.restart()
+            elif message == './':
+                self.timer.cancel()
             
     def stopOnTimeout(self):
         while not self.timer.isExpired():
             pass
-        #time.sleep(3)
         while "Backup Status" == self.w.GetWindowText(self.w.GetForegroundWindow()):
             pass
         self.m_StatusOutput.SetValue(wx.EmptyString)
