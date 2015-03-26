@@ -51,12 +51,10 @@ class MyHandler(PatternMatchingEventHandler):
 
     def process(self, trigger_path):
         try:
-            #print event.src_path
             command = '{} {}'.format(cygpath_loc, trigger_path)
             proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=si, shell=False)
             (stdoutdata, stderrdata) =  proc.communicate()
             cyg_formatted_path = os.path.dirname(stdoutdata.rstrip().replace("\n"," "))
-            #print cyg_formatted_path
             try:
                 command = '{} {} \'{}/\' \'{}\''.format(rsync_loc, dry_rsync_flags, cyg_formatted_path, self.dest_loc)
                 proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=si, shell=False)
@@ -72,10 +70,9 @@ class MyHandler(PatternMatchingEventHandler):
             while( len(dry_output.split("\n")) > 5 ):
                 try:
                     command = '{} {} \'{}/\' \'{}\''.format(rsync_loc, rsync_flags, cyg_formatted_path, self.dest_loc)
-                    #print command
                     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=si, shell=False)
                     times = 0
-                    
+
                     while proc.poll() is None:
                         line = proc.stdout.readline()
                         self.statusFrame.addStatus(line)
@@ -131,18 +128,13 @@ class backup():
         
     def run(self, parent_frame, observe_path, dest_loc):
         command = '{} {}'.format(cygpath_loc, dest_loc)
-        #print command
         proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=si, shell=False)
         (stdoutdata, stderrdata) =  proc.communicate()
         self.dest_loc = os.path.dirname(stdoutdata.rstrip().replace("\n"," "))
-        #print self.dest_loc
         command = '{} {}'.format(cygpath_loc, observe_path)
-        #print command
         proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=si, shell=False)
         (stdoutdata, stderrdata) =  proc.communicate()
         self.observe_path = os.path.dirname(stdoutdata.rstrip().replace("\n"," "))
-        #print self.observe_path
-        #print observe_path
         self.observer = Observer()
         self.observer.schedule(MyHandler(parent_frame, self.statusFrame, observe_path, self.dest_loc), path=observe_path, recursive=True)
         self.observer.start()
